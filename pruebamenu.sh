@@ -1,3 +1,32 @@
+#Creacion de nuestras listas blanca y negra donde pondremos el nombre de las usb's
+if [ -d /mnt/blanca.txt/ ]; then
+        echo "BIENVENIDO"
+else
+    	touch /mnt/blanca.txt
+fi
+
+if [ -d /mnt/negra.txt/ ]; then
+        echo "PREBEWALL"
+else
+    	touch /mnt/negra.txt
+fi
+
+while [ 1=1 ] ; do
+
+        #Declaracion de la varible USB
+        cat /etc/mtab | grep media >> /dev/null
+        if [ $? -ne 0 ]; then
+                RELLENO=0
+        #Verificamos si el dispositivo ya se encuentra en la lista Blanca para que proceda a montarse y ejecutarse
+        else
+            	prueba=$( cat /mnt/blanca.txt )
+                id=$( blkid | grep sd[^a] | grep UUID  | cut -d "=" -f 3 | sed -e 's/TYPE//g' | sed -e 's/"//g' )
+                direc=$( blkid | grep sd[^a] | cut -c 1-9 )
+                if [ $( grep -c $id /mnt/negra.txt ) -ne 0 ]; then
+                        umount $direc
+                        rm -f $direc
+                        echo esta memoria esta en blacklist, se bloqueara su acceso
+
 
 while [ $CONTROL=0 ] ; do
         #Creacion de nuestras listas blanca y negra donde pondremos el nombre de las usb's
