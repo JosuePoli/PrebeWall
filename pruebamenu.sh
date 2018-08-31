@@ -1,91 +1,65 @@
+#!/bin/bash
+
 #Creacion de nuestras listas blanca y negra donde pondremos el nombre de las usb's
 if [ -d /mnt/blanca.txt/ ]; then
-        echo "BIENVENIDO"
+        RELLENO=1
 else
     	touch /mnt/blanca.txt
 fi
 
 if [ -d /mnt/negra.txt/ ]; then
-        echo "PREBEWALL"
+        RELLENO=1
 else
     	touch /mnt/negra.txt
 fi
+CONTROL=0
+while [ $CONTROL=0 ] ; do
 
-while [ 1=1 ] ; do
-
-        #Declaracion de la varible USB
-        cat /etc/mtab | grep media >> /dev/null
+	#Declaracion de la varible USB
+	cat /etc/mtab | grep media >> /dev/null
         if [ $? -ne 0 ]; then
                 RELLENO=0
-        #Verificamos si el dispositivo ya se encuentra en la lista Blanca para que proceda a montarse y ejecutarse
-        else
-            	prueba=$( cat /mnt/blanca.txt )
+		CONTROL=0
+	#Verificamos si el dispositivo ya se encuentra en la lista Blanca para que proceda a montarse y ejecutarse
+	else
+		CONTROL=1
                 id=$( blkid | grep sd[^a] | grep UUID  | cut -d "=" -f 3 | sed -e 's/TYPE//g' | sed -e 's/"//g' )
                 direc=$( blkid | grep sd[^a] | cut -c 1-9 )
                 if [ $( grep -c $id /mnt/negra.txt ) -ne 0 ]; then
                         umount $direc
                         rm -f $direc
                         echo esta memoria esta en blacklist, se bloqueara su acceso
+                else
+			if [ $( grep -c $id /mnt/blanca.txt ) -ne 0 ]; then
+				CONTROL=0
+
+			else
+        			#Si es un nuevo dispositivo se despliega el menu, con las siguientes opciones
+                		RELLENO=1
 
 
-while [ $CONTROL=0 ] ; do
-        #Creacion de nuestras listas blanca y negra donde pondremos el nombre de las usb's
-        touch blanca.txt | touch negra.txt
-        cat /etc/mtab | grep media >> /dev/null
-	#Declaracion de la varible USB
+				echo "Se a conectado una USB"
+				echo "Montar un dispositvo puede significar un riesgo lógico y humano"; echo $!
+        			echo -e	"1)Montar y Ejecutar \n"
+				echo -e	"2)Añadir a la lista Blanca \n"
+				echo -e	"3)Añadir a la lista Negra \n"
 
-        if [ $? -ne 0 ]; then
-                CONTROL=0
-	#Verificamos si el dispositivo ya se encuentra en la lista Blanca para que proceda a montarse y ejecutarse
-	else if [ $(grep -c $USB blanca.txt) -ne 0 ]; then
-		CONTROL=1
-        	"El dispositivo: $USB , se encuentra en la lista blanca, procedera a montarse"
-        	mount /mnt/
-            	sudo eject /etc/mtab
-		exit 0
-        #Si es un nuevo dispositivo se despliega el menu, con las siguientes opciones
-	else
-                CONTROL=1
+				echo "elegir una opcion)"
+				read eleccion
+				case $eleccion in
+					1)	echo $id >> /mnt/blanca.txt
+						ruta="/run/media/$USER/$ip"
+						mount $direc $ruta
+						;;
 
+					2)	umount $direc
+                        			rm -f $direc
+                        			echo esta memoria esta en blacklist, se bloqueara su acceso cada vez que se inseerte
+						;;
 
-		echo "Se a conectado: $USB"
-		echo "Montar un dispositvo puede significar un riesgo lógico y humano"; echo $!
-                echo 	"1)Montar y Ejecutar \n"
-		echo	"2)Añadir a la lista Blanca \n"
-		echo	"3)Añadir a la lista Negra \n"
-
-		echo	"elegir una opcion")
-                #read opcion
-                	case $eleccion in
-
-	1) echo $id >> /mnt/blanca.txt
-			mount /mnt/blanca.txt
-                        sudo eject /dev/sdc1
-			CONTROL=1
-			echo "El dispositivo se encuentra en la lista blanca"
-			exit 0;;
-
-	2) echo $USB >> blanca.txt
-			CONTROL=1
-			echo "El sipositivo se encuetra en la lista blanca"
-			exit 0;;
-
-	3) echo $USB >> Negra.txt
-			CONTROL=1
-			echo "El dispositivo se encuentra en la lista negra"
-			exit 0;;
-
-	4) echo $USB >> Negra.txt
-			umount /mnt/negra.txt
-			echo "El dispositivo se encuentra en la lista negra"
-			exit 0;;
-
-	*) echo "opcion invalida";;
-			esac
-		break;
+				esac
+			fi
 		fi
-	done
+	fi
+done
 exit 0
-
-
-asdfasdfas
