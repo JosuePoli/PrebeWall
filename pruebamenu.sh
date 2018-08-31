@@ -29,7 +29,7 @@ while [ $CONTROL=0 ] ; do
                 #read opcion
                 	case $eleccion in
 
-	1) echo $USB >> WhiteList.txt
+	1) echo $id >> /mnt/blanca.txt
 			mount /mnt/blanca.txt
                         sudo eject /dev/sdc1
 			CONTROL=1
